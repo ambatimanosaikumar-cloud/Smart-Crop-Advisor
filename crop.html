@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Crop Advisor</title>
+<style>
+:root {
+  --forest-900: #0d2e1f;
+  --forest-800: #113d2a;
+  --forest-700: #174b32;
+  --forest-600: #1d633b;
+  --green-500: #2c7a48;
+  --green-400: #38a05a;
+  --green-300: #7ecb8d;
+  --green-100: #ebf8ee;
+  --lime-100: #f4fbef;
+  --stone-100: #f5f7f3;
+  --stone-200: #e9efe8;
+  --stone-300: #dfe8df;
+  --muted: #5e7365;
+  --text: #1a2d22;
+  --warning: #fff5d6;
+  --shadow-soft: 0 16px 40px rgba(17, 61, 42, 0.12);
+  --shadow-card: 0 12px 28px rgba(17, 61, 42, 0.08);
+  --page-bg: #f2f7f2;
+  --surface: rgba(255,255,255,0.82);
+  --surface-strong: #ffffff;
+  --surface-soft: #f7faf7;
+  --surface-tint: #edf6ee;
+  --input-bg: #ffffff;
+  --warning-border: rgba(214, 176, 79, 0.38);
+  --warning-text: #5d4a1d;
+  --header-bg: rgba(11, 35, 25, 0.82);
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(126, 203, 141, 0.12), transparent 25%),
+    linear-gradient(180deg, #f8fbf7 0%, var(--page-bg) 100%);
+  color: var(--text);
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+body[data-theme="dark"] {
+  color-scheme: dark;
+  --forest-800: #d1e9d6;
+  --forest-700: #a9d9b4;
+  --forest-600: #6fc184;
+  --green-100: #1c3828;
+  --lime-100: #192a20;
+  --stone-100: #17221b;
+  --stone-200: #26372c;
+  --stone-300: #304438;
+  --muted: #b1c4b5;
+  --text: #e7f0e9;
+  --warning: #352f1d;
+  --page-bg: #101a14;
+  --surface: rgba(25, 39, 30, 0.96);
+  --surface-strong: #19271e;
+  --surface-soft: #1b2b21;
+  --surface-tint: #203629;
+  --input-bg: #142119;
+  --warning-border: #61542d;
+  --warning-text: #f1dfa5;
+  --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.28);
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+body[data-theme="dark"] .topbar {
+  background: rgba(8, 17, 12, 0.9);
+}
+
+body[data-theme="dark"] .insight-card,
+body[data-theme="dark"] .score-panel,
+body[data-theme="dark"] .readout-box,
+body[data-theme="dark"] .stat-card,
+body[data-theme="dark"] .panel,
+body[data-theme="dark"] .feature-item,
+body[data-theme="dark"] .info-card,
+body[data-theme="dark"] .about-card,
+body[data-theme="dark"] .history-item {
+  background: var(--surface);
+}
+
+body[data-theme="dark"] .score-panel,
+body[data-theme="dark"] .info-card {
+  background: linear-gradient(145deg, #1d3023, #17251c);
+}
+
+body[data-theme="dark"] .crop-emoji,
+body[data-theme="dark"] .feature-icon {
+  background: linear-gradient(145deg, #203b2a, #1b2d21);
+}
+
+body[data-theme="dark"] .crop-tag,
+body[data-theme="dark"] .panel-tag,
+body[data-theme="dark"] .secondary-btn.large {
+  background: #203b2a;
+  color: #c5e7cc;
+  border-color: #355640;
+}
+
+body[data-theme="dark"] .tip-box {
+  background: var(--warning);
+  border-color: var(--warning-border);
+  color: var(--warning-text);
+}
+
+body[data-theme="dark"] .result-box {
+  background: #1b3223;
+  border-color: #355d40;
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] select {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--stone-300);
+}
+
+body[data-theme="dark"] option {
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+body[data-theme="dark"] .category-select-wrap::after {
+  color: #b1c4b5;
+}
+
+body[data-theme="dark"] .nav-cta {
+  color: #e7f0e9;
+}
+
+body[data-theme="dark"] .primary-btn {
+  color: #123b25;
+}
+
+body[data-theme="dark"] .splash-screen {
+  background: linear-gradient(135deg, #08150d, #153923 55%, #205532);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+.page-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(18px);
+  background: rgba(11, 35, 25, 0.82);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.topbar-inner {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #99d890, #2a7a49);
+  box-shadow: inset 0 2px 10px rgba(255,255,255,0.3);
+  font-size: 1.5rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: rgba(255,255,255,0.82);
+  font-size: 0.95rem;
+}
+
+.nav a {
+  transition: 0.2s ease;
+}
+
+.nav a:hover {
+  color: white;
+}
+
+.nav-cta {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 10px 16px;
+  border-radius: 999px;
+  color: white;
+  font-weight: 600;
+}
+
+.theme-toggle {
+  min-width: 112px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.18);
+  transform: translateY(-1px);
+}
+
+.container {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 28px;
+}
+
+.hero-panel {
+  background: linear-gradient(135deg, #123f2b 0%, #1f5a3d 42%, #2f7d4d 100%);
+  color: white;
+  border-radius: var(--radius-xl);
+  padding: min(4vw, 38px);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-panel::after {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -30px;
+  top: -30px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.06em;
+  max-width: 620px;
+  margin-bottom: 16px;
+}
+
+.hero p {
+  color: rgba(255,255,255,0.8);
+  font-size: 1.03rem;
+  line-height: 1.8;
+  max-width: 620px;
+  margin-bottom: 26px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.primary-btn, .secondary-btn {
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-btn:hover, .secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #dff8d9, #b7e8a3);
+  color: var(--forest-800);
+  font-weight: 700;
+  padding: 14px 20px;
+  box-shadow: 0 10px 25px rgba(146, 206, 118, 0.28);
+}
+
+.secondary-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: white;
+  padding: 14px 20px;
+  font-weight: 700;
+}
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+  gap: 14px;
+  max-width: 520px;
+}
+
+.mini-box {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 14px 12px;
+}
+
+.mini-box span {
+  display: block;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.mini-box strong {
+  font-size: 1.2rem;
+  letter-spacing: -0.04em;
+}
+
+.insight-card {
+  background: linear-gradient(180deg, #f7faf7 0%, #edf6ee 100%);
+  border: 1px solid var(--stone-300);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pulse {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.pulse-badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(26, 122, 72, 0.08);
+  color: var(--forest-700);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  background: #48bf70;
+  border-radius: 50%;
+  box-shadow: 0 0 0 8px rgba(72, 191, 112, 0.12);
+}
+
+.score-panel {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #edf7ee 100%);
+  border: 1px solid var(--stone-300);
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.label {
+  font-size: 0.76rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.score-value {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  color: var(--forest-700);
+  letter-spacing: -0.06em;
+}
+
+.score-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-top: 6px;
+}
+
+.progress {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--stone-200);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green-400), var(--forest-600));
+  transition: width 0.6s ease;
+}
+
+.score-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin-top: 12px;
+}
+
+.insight-crop {
+  color: var(--forest-700);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  margin: 4px 0 12px;
+}
+
+.soil-readout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.readout-box {
+  background: rgba(255,255,255,0.45);
+  border: 1px solid var(--stone-300);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.readout-box span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.readout-box strong {
+  font-size: 1.05rem;
+  color: var(--forest-800);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 18px;
+  margin: 0 0 28px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.72);
+  border: 1px solid var(--stone-300);
+  border-radius: 20px;
+  padding: 22px 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card h3 {
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  margin-bottom: 12px;
+}
+
+.stat-card h2 {
+  font-size: clamp(1.7rem, 2vw, 2.4rem);
+  color: var(--forest-700);
+  letter-spacing: -0.06em;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1.32fr 0.68fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.panel {
+  background: rgba(255,255,255,0.82);
+  border: 1px solid var(--stone-300);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 26px 24px;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.panel-head h2 {
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+  letter-spacing: -0.04em;
+  color: var(--forest-800);
+}
+
+.panel-tag {
+  background: var(--green-100);
+  color: var(--forest-700);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 18px;
+  max-width: 760px;
+}
+
+form {
+  display: grid;
+  gap: 16px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  color: var(--forest-800);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  border: 1px solid var(--stone-300);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus {
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(44, 122, 72, 0.12);
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.primary-btn.large, .secondary-btn.large {
+  min-width: 170px;
+  padding: 15px 22px;
+  font-size: 0.98rem;
+}
+
+.primary-btn.large {
+  flex: 1;
+  min-width: 210px;
+}
+
+.secondary-btn.large {
+  background: var(--green-100);
+  color: var(--forest-700);
+  border: 1px solid rgba(26, 122, 72, 0.08);
+  min-width: 150px;
+}
+
+.result-box {
+  display: none;
+  margin-top: 22px;
+  background: linear-gradient(180deg, #f3faf4, #edf7ee);
+  border: 1px solid rgba(46, 140, 76, 0.2);
+  border-radius: 18px;
+  padding: 20px 18px;
+}
+
+.result-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.crop-name {
+  font-size: clamp(1.8rem, 2.5vw, 2.8rem);
+  color: var(--forest-700);
+  letter-spacing: -0.06em;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+
+.result-box p {
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.history-item {
+  background: linear-gradient(180deg, #f9fdf9, #f3f8f3);
+  border: 1px solid var(--stone-300);
+  border-radius: 14px;
+  padding: 14px 12px;
+}
+
+.history-item strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--forest-800);
+  text-transform: capitalize;
+}
+
+.history-item small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.tip-box {
+  margin-top: 18px;
+  background: var(--warning);
+  border: 1px solid rgba(214, 176, 79, 0.38);
+  border-radius: 16px;
+  padding: 16px 15px;
+  color: #5d4a1d;
+  line-height: 1.7;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0 0 28px;
+}
+
+.feature-item {
+  background: rgba(255,255,255,0.78);
+  border: 1px solid var(--stone-300);
+  border-radius: 20px;
+  padding: 22px 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.feature-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #ebf8ee, #d8efdb);
+  font-size: 1.5rem;
+}
+
+.feature-item h3 {
+  font-size: 1.1rem;
+  color: var(--forest-800);
+  margin-bottom: 10px;
+}
+
+.feature-item p {
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.library-toolbar {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  margin: 18px 0 20px;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+.search-wrap input {
+  padding-left: 42px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.category-select-wrap {
+  position: relative;
+  min-width: 210px;
+}
+
+.category-select-wrap::after {
+  content: "▾";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-55%);
+  color: var(--forest-700);
+  pointer-events: none;
+  font-size: 1.1rem;
+}
+
+.category-select {
+  appearance: none;
+  padding-right: 42px;
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--input-bg);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.info-card {
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f7faf8 100%);
+  border: 1px solid var(--stone-300);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.crop-emoji {
+  height: 118px;
+  display: grid;
+  place-items: center;
+  font-size: 3rem;
+  background: linear-gradient(180deg, #ecf7ee, #dcefe2);
+}
+
+.crop-tag {
+  display: inline-block;
+  margin: 12px 16px 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #edf5ee;
+  color: var(--forest-700);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.info-body {
+  padding: 10px 16px 20px;
+}
+
+.info-body h3 {
+  margin-bottom: 8px;
+  text-transform: capitalize;
+  color: var(--forest-800);
+}
+
+.info-body p {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 0.93rem;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.about-card {
+  background: linear-gradient(180deg, #fbfdfb, #f4faf5);
+  border: 1px solid var(--stone-300);
+  border-radius: 18px;
+  padding: 20px 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.about-card h4 {
+  color: var(--forest-800);
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+}
+
+.about-card p {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 0.92rem;
+}
+
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f311f 0%, #1e5334 38%, #2f7c4a 100%);
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+.splash-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.splash-box {
+  text-align: center;
+  color: white;
+  padding: 32px 28px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 24px 60px rgba(5, 28, 19, 0.25);
+}
+
+.splash-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.splash-box h3 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  letter-spacing: -0.05em;
+}
+
+.splash-box p {
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 18px 12px 28px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .main-grid,
+  .library-toolbar,
+  .feature-grid,
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .fields,
+  .soil-readout,
+  .mini-stats,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .primary-btn.large, .secondary-btn.large {
+    width: 100%;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .theme-toggle {
+    margin-left: auto;
+  }
+}
+</style>
+</head>
+<body>
+<div class="splash-screen" id="splashScreen">
+  <div class="splash-box">
+    <div class="splash-icon">🌾</div>
+    <h3>Smart Crop Advisor</h3>
+    <p>AI crop recommendation</p>
+  </div>
+</div>
+
+<div class="page-shell">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">🌱</div>
+        <span>Smart Crop Advisor</span>
+      </div>
+
+      <nav class="nav">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#library">Crop Library</a>
+        <a href="#about">About</a>
+        <a href="#insights" class="nav-cta">Insights</a>
+      </nav>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">🌙 Dark mode</button>
+    </div>
+  </header>
+
+  <div class="container" id="dashboard">
+    <section class="hero">
+      <div class="hero-panel">
+        <div class="eyebrow">Agricultural intelligence</div>
+        <h1>Grow smarter with data-driven crop decisions.</h1>
+        <p>
+          Use soil nutrient levels, climate data, and seasonal conditions to identify the crop most suitable for your field.
+          Designed for farmers, field planners, and agricultural advisors.
+        </p>
+
+        <div class="hero-actions">
+          <a class="primary-btn" href="#recommendation">Recommend a crop</a>
+          <a class="secondary-btn" href="#library">Explore library</a>
+        </div>
+
+        <div class="mini-stats">
+          <div class="mini-box">
+            <span>Matches</span>
+            <strong>12+</strong>
+          </div>
+          <div class="mini-box">
+            <span>Fields</span>
+            <strong>7 inputs</strong>
+          </div>
+          <div class="mini-box">
+            <span>Modes</span>
+            <strong>5 categories</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-card" id="insights">
+        <div class="pulse">
+          <div class="pulse-badge" id="insightStatus">Waiting for field data</div>
+          <div class="pulse-dot"></div>
+        </div>
+
+        <div class="score-panel">
+          <div class="label">Suitability profile fit</div>
+          <div class="insight-crop" id="insightCrop">No recommendation yet</div>
+          <div class="score-value" id="confidenceValue">—</div>
+          <div class="score-meta">
+            <span>Heuristic match</span>
+            <strong id="confidenceLabel">Awaiting input</strong>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" id="confidenceBar"></div>
+          </div>
+          <p class="score-note">Demo suitability score from predefined crop ranges. It is not a trained ML model probability or a guarantee of crop success.</p>
+        </div>
+
+        <div class="soil-readout">
+          <div class="readout-box">
+            <span>Soil N</span>
+            <strong id="readoutN">—</strong>
+          </div>
+          <div class="readout-box">
+            <span>Soil P</span>
+            <strong id="readoutP">—</strong>
+          </div>
+          <div class="readout-box">
+            <span>pH</span>
+            <strong id="readoutPh">—</strong>
+          </div>
+          <div class="readout-box">
+            <span>Rain</span>
+            <strong id="readoutRainfall">—</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <h3>Recommendations</h3>
+        <h2 id="totalRecommendations">0</h2>
+      </div>
+      <div class="stat-card">
+        <h3>Crop classes</h3>
+        <h2>5</h2>
+      </div>
+      <div class="stat-card">
+        <h3>Climate inputs</h3>
+        <h2>7</h2>
+      </div>
+      <div class="stat-card">
+        <h3>System status</h3>
+        <h2 id="statusLabel">Ready</h2>
+      </div>
+    </section>
+
+    <section class="feature-grid">
+      <div class="feature-item">
+        <div class="feature-icon">🧪</div>
+        <h3>Soil analysis</h3>
+        <p>Evaluate NPK values, pH balance, and field suitability before deciding on a crop.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🌦️</div>
+        <h3>Climate matching</h3>
+        <p>Compare rainfall, temperature, and humidity against crop-specific growing requirements.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📚</div>
+        <h3>Crop knowledge</h3>
+        <p>Browse crop categories, growing guidance, and practical recommendations in one place.</p>
+      </div>
+    </section>
+
+    <div class="main-grid">
+      <section class="panel" id="recommendation">
+        <div class="panel-head">
+          <h2>Recommend a crop</h2>
+          <span class="panel-tag">Smart matching</span>
+        </div>
+
+        <p class="subtitle">
+          Enter the soil and environmental variables to receive a crop recommendation based on your field profile.
+        </p>
+
+        <form id="cropForm">
+          <div class="fields">
+            <div class="field">
+              <label for="n">Nitrogen (N)</label>
+              <input type="number" id="n" min="0" max="200" step="any" placeholder="e.g. 90" required />
+            </div>
+            <div class="field">
+              <label for="p">Phosphorus (P)</label>
+              <input type="number" id="p" min="0" max="200" step="any" placeholder="e.g. 42" required />
+            </div>
+          </div>
+
+          <div class="fields">
+            <div class="field">
+              <label for="k">Potassium (K)</label>
+              <input type="number" id="k" min="0" max="250" step="any" placeholder="e.g. 43" required />
+            </div>
+            <div class="field">
+              <label for="ph">Soil pH</label>
+              <input type="number" id="ph" min="0" max="14" step="any" placeholder="e.g. 6.5" required />
+            </div>
+          </div>
+
+          <div class="fields">
+            <div class="field">
+              <label for="temperature">Temperature (°C)</label>
+              <input type="number" id="temperature" min="-10" max="60" step="any" placeholder="e.g. 25" required />
+            </div>
+            <div class="field">
+              <label for="humidity">Humidity (%)</label>
+              <input type="number" id="humidity" min="0" max="100" step="any" placeholder="e.g. 80" required />
+            </div>
+          </div>
+
+          <div class="fields">
+            <div class="field">
+              <label for="rainfall">Rainfall (mm)</label>
+              <input type="number" id="rainfall" min="0" max="5000" step="any" placeholder="e.g. 200" required />
+            </div>
+            <div class="field">
+              <label for="season">Season</label>
+              <select id="season">
+                <option value="any">Not specified</option>
+                <option value="kharif">Kharif</option>
+                <option value="rabi">Rabi</option>
+                <option value="summer">Summer</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button type="submit" class="primary-btn large">🌱 Recommend Crop</button>
+            <button type="reset" class="secondary-btn large">Reset</button>
+          </div>
+        </form>
+
+        <div class="result-box" id="resultBox" aria-live="polite">
+          <div class="result-label">Recommended crop</div>
+          <div class="crop-name" id="recommendedCrop">Rice</div>
+          <p id="recommendationMessage">Best matched crop profile.</p>
+          <p id="recommendationDetails" style="margin-top: 10px;"></p>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <h2>History</h2>
+          <span class="panel-tag">Saved locally</span>
+        </div>
+
+        <p class="subtitle">Previous recommendations saved in this browser session.</p>
+
+        <div id="historyList" class="history-list">
+          <div class="history-item">
+            <strong>No recommendations yet</strong>
+            <small>Submit field values to store a result here.</small>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <strong>Farming tip:</strong> Use recent soil tests and local weather trends to validate recommendations before planting.
+          Consider irrigation, pests, seed availability, and market demand as part of final agronomic planning.
+        </div>
+      </aside>
+    </div>
+
+    <section class="panel" id="library">
+      <div class="panel-head">
+        <h2>Crop library</h2>
+        <span class="panel-tag">Searchable database</span>
+      </div>
+
+      <p class="subtitle">
+        Search crops by name or explore category-based recommendations for cereals, pulses, fruits, plantation, and fiber crops.
+      </p>
+
+      <div class="library-toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="librarySearch" placeholder="Search crop name or category" />
+        </div>
+
+        <div class="category-select-wrap">
+          <select class="category-select" id="categorySelect" aria-label="Filter crops by category">
+            <option value="all">🌿 All crop categories</option>
+            <option value="cereals">🌾 Cereals</option>
+            <option value="pulses">🫘 Pulses</option>
+            <option value="fruits">🍎 Fruits</option>
+            <option value="plantation">🌴 Plantation</option>
+            <option value="fiber">🧵 Fiber</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="info-grid" id="cropInfoGrid"></div>
+    </section>
+
+    <section class="panel" style="margin-top: 28px;" id="about">
+      <div class="panel-head">
+        <h2>About the project</h2>
+        <span class="panel-tag">Advisory system</span>
+      </div>
+
+      <p class="subtitle">
+        This project is designed as a professional agricultural decision support tool using field and environmental inputs to guide crop planning.
+      </p>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <h4>Application info</h4>
+          <p>Smart Crop Advisor helps users compare crop suitability using practical agronomy-inspired logic.</p>
+        </div>
+        <div class="about-card">
+          <h4>Theme</h4>
+          <p>Professional green palette, modern cards, and a dashboard appearance built for field decision support.</p>
+        </div>
+        <div class="about-card">
+          <h4>Privacy</h4>
+          <p>Recommendation history is stored locally in the browser and does not require login for basic use.</p>
+        </div>
+        <div class="about-card">
+          <h4>Disclaimer</h4>
+          <p>Results are advisory and should be validated using local agronomic guidance and soil testing.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Smart Crop Advisor • AI-Based Crop Recommendation System • Built for agriculture and planning
+  </footer>
+</div>
+
+<script>
+const cropProfiles = [
+  { name: 'rice', category: 'cereals', icon: '🌾', n: [60, 120], p: [30, 60], k: [30, 60], temp: [20, 35], humidity: [70, 95], ph: [5.0, 7.0], rainfall: [150, 350], seasons: ['kharif'], advice: 'Rice grows best in water-rich conditions. Ensure good irrigation, drainage control, and local suitability before planting.' },
+  { name: 'wheat', category: 'cereals', icon: '🌾', n: [50, 110], p: [20, 60], k: [20, 60], temp: [12, 25], humidity: [40, 70], ph: [5.8, 7.2], rainfall: [50, 150], seasons: ['rabi'], advice: 'Wheat grows best in cool season conditions with moderate rainfall and balanced soil fertility.' },
+  { name: 'maize', category: 'cereals', icon: '🌽', n: [50, 120], p: [30, 70], k: [20, 60], temp: [18, 32], humidity: [40, 80], ph: [5.5, 7.5], rainfall: [50, 150], seasons: ['kharif', 'summer'], advice: 'Maize requires balanced nutrition and careful drainage. Check irrigation planning and climate conditions.' },
+  { name: 'chickpea', category: 'pulses', icon: '🫘', n: [20, 60], p: [40, 80], k: [20, 60], temp: [15, 30], humidity: [15, 50], ph: [5.5, 8.0], rainfall: [30, 100], seasons: ['rabi'], advice: 'Chickpea performs well in cooler seasons. Avoid waterlogging and use location-specific varieties.' },
+  { name: 'kidney beans', category: 'pulses', icon: '🫘', n: [20, 60], p: [40, 80], k: [15, 50], temp: [15, 27], humidity: [40, 70], ph: [5.5, 7.0], rainfall: [50, 150], seasons: ['rabi', 'summer'], advice: 'Kidney beans need good drainage and proper sowing season. Avoid excess water near the root zone.' },
+  { name: 'mung bean', category: 'pulses', icon: '🌱', n: [10, 40], p: [30, 70], k: [15, 40], temp: [25, 35], humidity: [40, 80], ph: [6.0, 7.5], rainfall: [30, 100], seasons: ['summer', 'kharif'], advice: 'Mung bean grows well in warm and moderately humid conditions. Check seasonal timing and irrigation needs.' },
+  { name: 'lentil', category: 'pulses', icon: '🫘', n: [10, 40], p: [30, 70], k: [15, 40], temp: [15, 28], humidity: [20, 60], ph: [5.5, 7.5], rainfall: [30, 100], seasons: ['rabi'], advice: 'Lentil grows best in cooler conditions with good drainage. Match local climate conditions before sowing.' },
+  { name: 'banana', category: 'fruits', icon: '🍌', n: [80, 140], p: [40, 90], k: [80, 200], temp: [25, 35], humidity: [60, 90], ph: [5.5, 7.5], rainfall: [100, 300], seasons: ['any'], advice: 'Banana needs fertile soil and reliable irrigation. Ensure wind protection and stable soil moisture.' },
+  { name: 'mango', category: 'fruits', icon: '🥭', n: [40, 90], p: [30, 70], k: [40, 80], temp: [24, 30], humidity: [50, 80], ph: [5.5, 7.5], rainfall: [80, 200], seasons: ['summer'], advice: 'Mango grows well in warm climates with good drainage. Protect young trees from water stress and early frost.' },
+  { name: 'coconut', category: 'plantation', icon: '🥥', n: [40, 80], p: [20, 60], k: [80, 160], temp: [27, 32], humidity: [70, 90], ph: [5.5, 8.0], rainfall: [180, 300], seasons: ['any'], advice: 'Coconut requires warm, humid conditions and sandy or loamy soils with consistent moisture.' },
+  { name: 'tea', category: 'plantation', icon: '🍵', n: [30, 70], p: [20, 50], k: [30, 70], temp: [18, 28], humidity: [70, 90], ph: [4.5, 6.0], rainfall: [150, 250], seasons: ['kharif'], advice: 'Tea performs best in cool, humid, high-altitude conditions with acidic soil and good moisture retention.' },
+  { name: 'cotton', category: 'fiber', icon: '☁️', n: [60, 120], p: [30, 70], k: [30, 80], temp: [21, 35], humidity: [30, 80], ph: [5.5, 8.0], rainfall: [50, 150], seasons: ['kharif'], advice: 'Cotton is sensitive to pest pressure and irrigation issues. Monitor moisture and pest management carefully.' },
+  { name: 'jute', category: 'fiber', icon: '🌿', n: [40, 80], p: [20, 60], k: [20, 60], temp: [25, 35], humidity: [70, 90], ph: [5.0, 7.5], rainfall: [150, 300], seasons: ['kharif'], advice: 'Jute grows well in warm, humid climates with abundant water and high organic matter in the soil.' }
+];
+
+const cropInfoGrid = document.getElementById('cropInfoGrid');
+const resultBox = document.getElementById('resultBox');
+const totalRecommendations = document.getElementById('totalRecommendations');
+const statusLabel = document.getElementById('statusLabel');
+const historyList = document.getElementById('historyList');
+const cropForm = document.getElementById('cropForm');
+const librarySearch = document.getElementById('librarySearch');
+const categorySelect = document.getElementById('categorySelect');
+const themeToggle = document.getElementById('themeToggle');
+const themePreference = localStorage.getItem('smart-crop-theme');
+
+let selectedCategory = categorySelect.value;
+
+function applyTheme(theme) {
+  document.body.dataset.theme = theme;
+  const darkModeEnabled = theme === 'dark';
+  themeToggle.setAttribute('aria-pressed', String(darkModeEnabled));
+  themeToggle.textContent = darkModeEnabled ? '☀️ Light mode' : '🌙 Dark mode';
+}
+
+applyTheme(themePreference === 'dark' ? 'dark' : 'light');
+
+themeToggle.addEventListener('click', () => {
+  const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(nextTheme);
+  localStorage.setItem('smart-crop-theme', nextTheme);
+});
+
+function getFilteredCrops() {
+  const query = librarySearch.value.trim().toLowerCase();
+  return cropProfiles.filter(crop => {
+    const matchesCategory = selectedCategory === 'all' || crop.category === selectedCategory;
+    const matchesSearch = !query || crop.name.toLowerCase().includes(query) || crop.category.toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  });
+}
+
+function renderCropInfo() {
+  const filtered = getFilteredCrops();
+
+  if (!filtered.length) {
+    cropInfoGrid.innerHTML = `
+      <article class="info-card" style="grid-column: 1 / -1;">
+        <div class="info-body">
+          <h3>No crop found</h3>
+          <p>Try another keyword or choose a different crop category.</p>
+        </div>
+      </article>
+    `;
+    return;
+  }
+
+  cropInfoGrid.innerHTML = filtered.map(crop => `
+    <article class="info-card">
+      <div class="crop-emoji">${crop.icon}</div>
+      <span class="crop-tag">${crop.category}</span>
+      <div class="info-body">
+        <h3>${crop.name}</h3>
+        <p>${crop.advice}</p>
+      </div>
+    </article>
+  `).join('');
+}
+
+function updateInsightPanel(crop, values, score) {
+  const maximumScore = 7 + (values.season === 'any' ? 0 : 1);
+  const profileFit = Math.round((score / maximumScore) * 100);
+  const fitLabel = profileFit >= 80 ? 'Strong fit' : profileFit >= 60 ? 'Moderate fit' : 'Limited fit';
+
+  document.getElementById('insightStatus').textContent = 'Profile analyzed';
+  document.getElementById('insightCrop').textContent = crop.name;
+  document.getElementById('confidenceValue').textContent = `${profileFit}%`;
+  document.getElementById('confidenceLabel').textContent = fitLabel;
+  document.getElementById('confidenceBar').style.width = `${profileFit}%`;
+  document.getElementById('readoutN').textContent = `${values.n} kg/ha`;
+  document.getElementById('readoutP').textContent = `${values.p} kg/ha`;
+  document.getElementById('readoutPh').textContent = String(values.ph);
+  document.getElementById('readoutRainfall').textContent = `${values.rainfall} mm`;
+}
+
+function readValues() {
+  return {
+    n: Number(document.getElementById('n').value),
+    p: Number(document.getElementById('p').value),
+    k: Number(document.getElementById('k').value),
+    temp: Number(document.getElementById('temperature').value),
+    humidity: Number(document.getElementById('humidity').value),
+    ph: Number(document.getElementById('ph').value),
+    rainfall: Number(document.getElementById('rainfall').value),
+    season: document.getElementById('season').value
+  };
+}
+
+function scoreCrop(crop, values) {
+  const fields = ['n', 'p', 'k', 'ph', 'temp', 'humidity', 'rainfall'];
+  let score = 0;
+
+  fields.forEach(field => {
+    const range = crop[field];
+    const value = values[field];
+
+    if (value >= range[0] && value <= range[1]) {
+      score += 1;
+    } else {
+      const distance = value < range[0] ? range[0] - value : value - range[1];
+      const width = Math.max(range[1] - range[0], 1);
+      score += Math.max(0, 1 - distance / width);
+    }
+  });
+
+  if (values.season !== 'any' && crop.seasons.includes(values.season)) {
+    score += 1;
+  }
+
+  return score;
+}
+
+function loadHistory() {
+  const saved = JSON.parse(localStorage.getItem('smart-crop-history') || '[]');
+
+  if (!saved.length) {
+    historyList.innerHTML = `
+      <div class="history-item">
+        <strong>No recommendations yet</strong>
+        <small>Submit field values to store a result here.</small>
+      </div>
+    `;
+    return;
+  }
+
+  historyList.innerHTML = saved.map(item => `
+    <div class="history-item">
+      <strong>${item.crop}</strong>
+      <small>${item.date}</small>
+      <small>N: ${item.n} | P: ${item.p} | K: ${item.k} | pH: ${item.ph}</small>
+    </div>
+  `).join('');
+}
+
+function saveHistory(crop, values) {
+  const history = JSON.parse(localStorage.getItem('smart-crop-history') || '[]');
+  const item = {
+    crop,
+    date: new Date().toLocaleString(),
+    n: values.n,
+    p: values.p,
+    k: values.k,
+    ph: values.ph
+  };
+
+  history.unshift(item);
+  localStorage.setItem('smart-crop-history', JSON.stringify(history.slice(0, 8)));
+  loadHistory();
+}
+
+function resetFormState() {
+  statusLabel.textContent = 'Ready';
+  resultBox.style.display = 'none';
+}
+
+cropForm.addEventListener('submit', function (event) {
+  event.preventDefault();
+
+  const values = readValues();
+  const numericFields = [values.n, values.p, values.k, values.temp, values.humidity, values.ph, values.rainfall];
+
+  if (numericFields.some(value => !Number.isFinite(value))) {
+    alert('Please enter valid numeric values for each field.');
+    return;
+  }
+
+  const ranked = cropProfiles
+    .map(crop => ({ crop, score: scoreCrop(crop, values) }))
+    .sort((a, b) => b.score - a.score);
+
+  const best = ranked[0].crop;
+  const bestScore = ranked[0].score;
+
+  document.getElementById('recommendedCrop').textContent = best.name;
+  document.getElementById('recommendationMessage').textContent = `Top profile match with a ${Math.round((bestScore / (7 + (values.season === 'any' ? 0 : 1))) * 100)}% suitability fit. This is a demo score, not a trained-model confidence probability.`;
+  document.getElementById('recommendationDetails').textContent = `${best.advice} Recommended season: ${best.seasons.includes(values.season) ? values.season : 'best matching local condition'}.`;
+  resultBox.style.display = 'block';
+  updateInsightPanel(best, values, bestScore);
+
+  totalRecommendations.textContent = String(Number(totalRecommendations.textContent) + 1);
+  statusLabel.textContent = 'Analyzed';
+  saveHistory(best.name, values);
+});
+
+cropForm.addEventListener('reset', function () {
+  resetFormState();
+});
+
+librarySearch.addEventListener('input', renderCropInfo);
+
+categorySelect.addEventListener('change', () => {
+  selectedCategory = categorySelect.value;
+  renderCropInfo();
+});
+
+window.addEventListener('load', function () {
+  renderCropInfo();
+  loadHistory();
+  setTimeout(() => {
+    document.getElementById('splashScreen').classList.add('hidden');
+  }, 1100);
+});
+</script>
+</body>
+</html>
